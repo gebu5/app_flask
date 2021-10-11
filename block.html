@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <meta charset="UTF-8">
+</head>
+<body>
+<form>
+    <input type="button" value="Создать" onclick="
+        if (document.getElementById('form_create').style.display == 'none')
+        { document.getElementById('form_create').style.display = 'block'; }
+        else {document.getElementById('form_create').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="button" value="Связать" onclick="
+        if (document.getElementById('form_connect').style.display == 'none')
+        { document.getElementById('form_connect').style.display = 'block'; }
+        else {document.getElementById('form_connect').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+
+</form>
+<form action="http://127.0.0.1:5000/integration_asana/1" id="form_create" style="display: none;">
+    <table width="100%" cellspacing="0" cellpadding="4">
+        <tr>
+            <td align="right" width="100">Название задачи</td>
+            <td><input type="text" name="taskname" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td align="right">Workspace</td>
+            <td>
+                <p>
+                    <select id="mySelectId" name="workspace" onchange="">>
+                        <option disabled selected value> Выберите workspace</option>
+                        <option value="Product"> Product</option>
+                        <option value="Black Mesa"> Black Mesa</option>
+                        <option value="str2"> Строка списка 2</option>
+                    </select>
+                </p>
+            </td>
+        <tr>
+            <td align="right">Проект</td>
+            <td> <p><select id="projectSelectId" name="project" onchange="">
+                <option value="Usedesk dev tests"> Usedesk dev tests</option>
+                <option disabled selected value> Выберите проект</option>
+            </select></p>
+            </td>
+        </tr>
+        <tr>
+        <td align="right">Исполнитель</td>
+        <td>
+            <p><select id="assigneeSelectId" name="assignee" onchange="">
+                <option disabled selected value> Выберите исполнителя</option>
+                <option value =""> Без исполнителя</option>
+            </select></p>
+        </td>
+        </tr>
+        <tr>
+            <td align="right">Дедлайн</td>
+            <td><input type="text" name="deadline" maxlength="50" size="20" placeholder="ГГГГ-ММ-ДД"></td>
+        </tr>
+
+        <tr>
+            <td align="right">Описание</td>
+            <td><input type="text" name="notes" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="button" value="Создать задачу" onclick="
+            $.ajax({
+                type: 'POST',
+                url:'http://127.0.0.1:5000/integration_asana/1',
+                data: $('#'+'form_create').serialize(),
+                type: 'POST',
+                success: function(response) {
+                    var json = jQuery.parseJSON(response);
+                    if (json.ans == 'Success')
+                        { location.reload();}
+                    else {
+                    $('#create').html(json.ans);
+                    }
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });">
+                <input type="button" value="Закрыть" onclick="
+                   if (document.getElementById('form_create').style.display == 'none')
+                   { document.getElementById('form_create').style.display = 'block'; }
+                   else {document.getElementById('form_create').style.display = 'none'; document.getElementById('create').innerHTML='';}">
+            </td>
+        </tr>
+    </table>
+</form>
+<div id="create"></div>
+
+<br/>
+<form action="http://127.0.0.1:5000/integration_asana/2" id="form_connect" style="display: none;">
+    <table width="100%" cellspacing="0" cellpadding="4">
+        <tr>
+            <td align="right" width="100">Номер задачи</td>
+            <td><input type="text" name="task_id" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="button" value="Связать  задачу" onclick="
+            $.ajax({
+                type: 'POST',
+                url:'http://127.0.0.1:5000/integration_asana/2',
+                data: $('#'+'form_connect').serialize(),
+                type: 'POST',
+                success: function(response) {
+                    console.log(response);
+                    var json = jQuery.parseJSON(response);
+                    if (json.ans == 'Success')
+                        { location.reload(); }
+                    else {
+                    $('#connect').html(json.ans);
+                    }
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });">
+                <input type="button" value="Закрыть" onclick="
+                if (document.getElementById('form_connect').style.display == 'none')
+                { document.getElementById('form_connect').style.display = 'block'; }
+                else {document.getElementById('form_connect').style.display = 'none'; document.getElementById('connect').innerHTML='';}"/>
+            </td>
+        </tr>
+    </table>
+</form>
+<div id="connect"></div>
+<input type="button" value="Список задач" onclick="
+            if (document.getElementById('form_main').style.display == 'none')
+            { document.getElementById('form_main').style.display = 'block'; }
+            else {document.getElementById('form_main').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+
+
+

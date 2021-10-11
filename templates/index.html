@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <meta charset="UTF-8">
+</head>
+<body>
+<form>
+    <input type="button" value="Создать" onclick="
+      var objSelWork = document.getElementById('workspace');
+      for (var i=objSelWork.options.length-1; i >= 1; i--)
+      {
+          objSelWork.options[i] = null;
+      }
+      {% for elem in workspace_projects %}
+        {% for key in elem %}
+            objSelWork.options[objSelWork.options.length] = new Option('{{key}}', '{{key}}');
+        {% endfor %}
+      {% endfor %}
+        if (document.getElementById('form_create').style.display == 'none')
+        { document.getElementById('form_create').style.display = 'block'; }
+        else {document.getElementById('form_create').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="button" value="Связать" onclick="
+        if (document.getElementById('form_connect').style.display == 'none')
+        { document.getElementById('form_connect').style.display = 'block'; }
+        else {document.getElementById('form_connect').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+
+</form>
+<form id="form_create" style="display: none;">
+    <table width="100%" cellspacing="0" cellpadding="4">
+        <tr>
+            <td align="right" width="100">Название задачи</td>
+            <td><input type="text" name="taskname" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td align="right">Workspace</td>
+            <td>
+                <p>
+                    <select id="workspace" name="workspace" onchange="
+                                                  var objSelProj = document.getElementById('project');
+                                                  var objSelThis = document.getElementById('workspace');
+                                                  var objSelAssign = document.getElementById('assignee');
+if ( objSelThis.selectedIndex != -1)
+{
+    var array_work = [];
+    var projects = [];
+    {% for elem in workspace_projects %}
+        {% for key in elem %}
+            {% for project in elem[key] %}
+                projects.push('{{ project }}');
+            {% endfor %}
+            var dict = { '{{key}}' : projects };
+            array_work.push(dict);
+            var projects = [];
+        {% endfor %}
+    {% endfor %}
+    var value_proj = objSelThis.options[objSelThis.selectedIndex].value;
+    for (var i=objSelProj.options.length-1; i >= 1; i--)
+      {
+          objSelProj.options[i] = null;
+      }
+    for (let workspace of array_work) {
+        for(key in workspace) {
+            if (key == value_proj){
+                for(let elem of workspace[key]){
+                    objSelProj.options[objSelProj.options.length] = new Option(elem, elem);
+                }
+            }
+        }
+    }
+
+   var array_work = [];
+   var assignee_list = [];
+    {% for elem in workspace_assignee %}
+        {% for key in elem %}
+            {% for assignee in elem[key] %}
+                assignee_list.push('{{ assignee }}');
+            {% endfor %}
+            var dict = { '{{key}}' : assignee_list };
+            array_work.push(dict);
+            var assignee_list = [];
+        {% endfor %}
+    {% endfor %}
+    var value_assignee = objSelThis.options[objSelThis.selectedIndex].value;
+    for (var i=objSelAssign.options.length-1; i >= 2; i--)
+      {
+          objSelAssign.options[i] = null;
+      }
+    for (let workspace of array_work) {
+        for(key in workspace) {
+            if (key == value_assignee){
+                for(let elem of workspace[key]){
+                    objSelAssign.options[objSelAssign.options.length] = new Option(elem, elem);
+                }
+            }
+        }
+     }
+
+}">>
+                        <option disabled selected value> Выберите workspace</option>
+                    </select>
+                </p>
+            </td>
+        <tr>
+            <td align="right">Проект</td>
+            <td> <p><select id="project" name="project" onchange="">
+                <option disabled selected value> Выберите проект</option>
+            </select></p>
+            </td>
+        </tr>
+        <tr>
+        <td align="right">Исполнитель</td>
+        <td>
+            <p><select id="assignee" name="assignee" onchange="">
+                <option disabled selected value> Выберите исполнителя</option>
+                <option value =""> Без исполнителя</option>
+            </select></p>
+        </td>
+        </tr>
+        <tr>
+            <td align="right">Дедлайн</td>
+            <td><input type="text" name="deadline" maxlength="50" size="20" placeholder="ГГГГ-ММ-ДД"></td>
+        </tr>
+
+        <tr>
+            <td align="right">Описание</td>
+            <td><input type="text" name="notes" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="button" value="Создать задачу" onclick="
+            $.ajax({
+                type: 'POST',
+                url:'https://fast-anchorage-20670.herokuapp.com/integration_asana/1',
+                data: $('#'+'form_create').serialize(),
+                type: 'POST',
+                success: function(response) {
+                    var json = jQuery.parseJSON(response);
+                    if (json.ans == 'Success')
+                        { location.reload();}
+                    else {
+                    $('#create').html(json.ans);
+                    }
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });">
+                <input type="button" value="Закрыть" onclick="
+                   if (document.getElementById('form_create').style.display == 'none')
+                   { document.getElementById('form_create').style.display = 'block'; }
+                   else {document.getElementById('form_create').style.display = 'none'; document.getElementById('create').innerHTML='';}">
+            </td>
+        </tr>
+    </table>
+</form>
+<div id="create"></div>
+
+<br/>
+<form action="https://fast-anchorage-20670.herokuapp.com/integration_asana/2" id="form_connect" style="display: none;">
+    <table width="100%" cellspacing="0" cellpadding="4">
+        <tr>
+            <td align="right" width="100">Номер задачи</td>
+            <td><input type="text" name="task_id" maxlength="50" size="20"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="button" value="Связать  задачу" onclick="
+            $.ajax({
+                type: 'POST',
+                url:'https://fast-anchorage-20670.herokuapp.com/integration_asana/2',
+                data: $('#'+'form_connect').serialize(),
+                type: 'POST',
+                success: function(response) {
+                    console.log(response);
+                    var json = jQuery.parseJSON(response);
+                    if (json.ans == 'Success')
+                        { location.reload(); }
+                    else {
+                    $('#connect').html(json.ans);
+                    }
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });">
+                <input type="button" value="Закрыть" onclick="
+                if (document.getElementById('form_connect').style.display == 'none')
+                { document.getElementById('form_connect').style.display = 'block'; }
+                else {document.getElementById('form_connect').style.display = 'none'; document.getElementById('connect').innerHTML='';}"/>
+            </td>
+        </tr>
+    </table>
+</form>
+<div id="connect"></div>
+<br/>
+{% if length>1 %}
+    <input type="button" value="Список задач" onclick="
+                if (document.getElementById('form_main').style.display == 'none')
+                { document.getElementById('form_main').style.display = 'block'; }
+                else {document.getElementById('form_main').style.display = 'none'; document.getElementById('len').innerHTML='';}">
+
+    <form id="form_main" style="display: none;">
+        <table width="100%" cellspacing="0" cellpadding="4">
+            {% for task in task_list %}
+                {% if task.name %}
+                    <tr>
+                        <td><input type="button" value={{ task.name }} onclick="
+                                    if (document.getElementById('form_{{task.name}}').style.display == 'none')
+                                    { document.getElementById('form_{{task.name}}').style.display = 'block'; }
+                                    else {document.getElementById('form_{{task.name}}').style.display = 'none';}"/>
+                        </td>
+                    </tr>
+                {% else %}
+                    <td><input type="button" value="Задача не найдена"/></td>
+                {% endif %}
+            {% endfor %}
+        </table>
+    </form>
+    {% for task in task_list %}
+        {% if task.name %}
+            <form id="form_{{task.name}}" style="display: none;">
+                <h1 style="text-align:center;">{{ task.name }} <a href="{{ task.url }}" target="_blank">
+                    <i class="fa fa-external-link" aria-hidden="true"></i> </a></h1>
+                <p><big><b>Статус: <em>{{ task.status }}</em></b></big></p>
+                <p><big><b>Исполнитель: <em>{{ task.assignee }}</em></b></big></p>
+                {% if task.deadline %}
+                    <p><big><b>Дедлайн: <em>{{ task.deadline }}</em></b></big></p>
+                {% endif %}
+                <p><big><b>Проект: <em>{{ task.project }}</em></b></big></p>
+                {% if task.custom_fields %}
+                    <big><b>Кастомные поля:</b></big></p>
+                    {% for fields in task.custom_fields %}
+                        {% for field in fields %}
+                            <p><em> {{ field }} - {{ fields[field] }}</em></p>
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if task.notes %}
+                    <p><big><b>Описание: <em>{{ task.notes }}</em></b></big></p>
+                {% endif %}
+                {% if task.subtask_list %}
+                    <big><b>Список подзадач:</b></big></p>
+                    {% for fields in task.subtask_list %}
+                        {% for field in fields %}
+                            <p><a href="{{ fields[field] }}" target="_blank">{{ field }} </a></p>
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+            </form>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    {% for task in task_list %}
+        {% if task.name %}
+            <h1
+                 style="text-align:center;">{{ task.name }} <a href="{{ task.url }}" target="_blank">
+                <i class="fa fa-external-link" aria-hidden="true"></i> </a>
+            </h1>
+            <p><big><b>Статус: <em>{{ task.status }}</em></b></big></p>
+            <p><big><b>Исполнитель: <em>{{ task.assignee }}</em></b></big></p>
+            {% if task.deadline %}
+                <p><big><b>Дедлайн: <em>{{ task.deadline }}</em></b></big></p>
+            {% endif %}
+            <p><big><b>Проект: <em>{{ task.project }}</em></b></big></p>
+            {% if task.custom_fields %}
+                <big><b>Кастомные поля:</b></big></p>
+                {% for fields in task.custom_fields %}
+                    {% for field in fields %}
+                        <p><em> {{ field }} - {{ fields[field] }}</em></p>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            {% if task.notes %}
+                <p><big><b>Описание: <em>{{ task.notes }}</em></b></big></p>
+            {% endif %}
+            {% if task.subtask_list %}
+                <big><b>Список подзадач:</b></big></p>
+                {% for fields in task.subtask_list %}
+                    {% for field in fields %}
+                        <p><a href="{{ fields[field] }}" target="_blank">{{ field }} </a></p>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        {% else %}
+            <h1 style="text-align:center;">Задача не найдена</h1>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</body>
+</html>
